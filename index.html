@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>学習サポートナビ</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, 'Hiragino Sans', 'Yu Gothic', sans-serif;
+      background: #b2dfb0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .phone {
+      width: 390px;
+      height: 780px;
+      background: #fff;
+      border-radius: 40px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .header {
+      background: #00b900;
+      color: #fff;
+      padding: 16px 20px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .header-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .header-info .name { font-weight: bold; font-size: 16px; }
+    .header-info .sub { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 12px;
+      background: #c8e6c9;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .messages::-webkit-scrollbar { width: 4px; }
+    .messages::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 2px; }
+
+    .date-divider {
+      text-align: center;
+      font-size: 11px;
+      color: #555;
+      background: rgba(0,0,0,0.1);
+      border-radius: 10px;
+      padding: 3px 10px;
+      align-self: center;
+    }
+
+    .msg-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .msg-row.user { flex-direction: row-reverse; }
+
+    .bot-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      align-self: flex-end;
+    }
+
+    .bubble {
+      max-width: 240px;
+      padding: 10px 13px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .bubble.bot { background: #fff; border-bottom-left-radius: 4px; }
+    .bubble.user { background: #00b900; color: #fff; border-bottom-right-radius: 4px; }
+
+    .msg-time {
+      font-size: 10px;
+      color: #777;
+      flex-shrink: 0;
+      margin-bottom: 2px;
+    }
+
+    .typing .bubble { padding: 12px 16px; }
+
+    .dots { display: flex; gap: 4px; align-items: center; }
+    .dots span {
+      width: 7px; height: 7px;
+      background: #aaa;
+      border-radius: 50%;
+      animation: bounce 1.2s infinite;
+    }
+    .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-6px); }
+    }
+
+    /* クイックリプライボタン */
+    .quick-replies {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 4px 0 0 44px;
+    }
+
+    .qr-btn {
+      background: #fff;
+      border: 1.5px solid #00b900;
+      color: #00b900;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .qr-btn:hover { background: #00b900; color: #fff; }
+
+    .input-area {
+      background: #f5f5f5;
+      padding: 10px 12px;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      border-top: 1px solid #e0e0e0;
+      flex-shrink: 0;
+    }
+
+    textarea {
+      flex: 1;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      padding: 9px 14px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: none;
+      outline: none;
+      line-height: 1.4;
+      max-height: 100px;
+      overflow-y: auto;
+      background: #fff;
+    }
+
+    textarea:focus { border-color: #00b900; }
+
+    .send-btn {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: #00b900;
+      border: none;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+
+    .send-btn:hover { background: #009900; }
+    .send-btn:disabled { background: #ccc; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+<div class="phone">
+  <div class="header">
+    <div class="header-avatar">🎓</div>
+    <div class="header-info">
+      <div class="name">学習サポートナビ</div>
+      <div class="sub">あなたに合ったサポートを案内します</div>
+    </div>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="date-divider">今日</div>
+  </div>
+
+  <div class="input-area">
+    <textarea id="input" placeholder="メッセージを入力..." rows="1"></textarea>
+    <button class="send-btn" id="sendBtn">➤</button>
+  </div>
+</div>
+
+<script>
+// ========== データ ==========
+
+const MENTORS = [
+  {
+    name: "田中 陽介",
+    previousJob: "元営業職（5年）",
+    strengths: ["モチベーション維持", "転職不安", "継続のコツ"],
+    tags: ["モチベーション", "やる気", "続かない", "転職", "不安", "自信"],
+    message: "営業から未経験でエンジニアに転職しました。「自分にできるのか」という不安は誰よりもわかります。一緒に乗り越えましょう！",
+  },
+  {
+    name: "佐藤 美咲",
+    previousJob: "育児中の主婦",
+    strengths: ["時間管理", "育児・仕事との両立", "スキマ時間活用"],
+    tags: ["時間", "忙しい", "育児", "子ども", "仕事", "両立", "スキマ"],
+    message: "子育てしながらの学習は本当に大変でした。でも工夫次第でなんとかなります。一緒に考えましょう！",
+  },
+  {
+    name: "山田 健太",
+    previousJob: "文系出身・事務職",
+    strengths: ["技術への苦手意識", "挫折からの立て直し"],
+    tags: ["難しい", "わからない", "挫折", "向いてない", "苦手", "文系", "ついていけない"],
+    message: "数学もプログラミングも全くの初心者でした。何度も挫折しましたが、そのたびに立ち直る方法を見つけてきました。",
+  },
+  {
+    name: "鈴木 彩香",
+    previousJob: "社会人3年目・マーケター",
+    strengths: ["転職タイミング", "キャリアの方向性"],
+    tags: ["キャリア", "転職", "いつ", "タイミング", "将来", "方向性", "辞める"],
+    message: "20代後半での転職決断はとても悩みました。キャリアの不安や迷いについてリアルな経験談をお話しできます。",
+  },
+];
+
+const SERVICES = {
+  mentoring: {
+    name: "卒業生メンタリング",
+    description: "プログラムを卒業した先輩受講生と1on1でオンライン相談ができます。",
+    frequency: "週1回・30分",
+  },
+  coaching: {
+    name: "学習コーチング",
+    description: "専任コーチが学習計画の作成と習慣づくりをサポートします。",
+    frequency: "週1回・45分",
+  },
+  career: {
+    name: "キャリア相談",
+    description: "専任コンサルタントが転職・キャリアの方向性について相談に乗ります。",
+    frequency: "月2回・60分",
+  },
+  community: {
+    name: "受講生コミュニティ",
+    description: "同じ時期に学ぶ受講生が集まるSlackグループです。",
+    frequency: "随時参加",
+  },
+  group_lesson: {
+    name: "グループレッスン",
+    description: "レッスン時間外に時間割で開催される講座に参加できます。テーマ別に開催されます。",
+    frequency: "週複数回開催（時間割による）",
+  },
+};
+
+// ========== 会話エンジン ==========
+
+const state = {
+  step: "greeting",    // greeting → category → detail → result
+  category: null,      // "motivation" | "time" | "career" | "learning" | "lonely" | "service"
+  userInput1: "",
+  userInput2: "",
+};
+
+const CATEGORY_KEYWORDS = {
+  motivation: ["やる気", "モチベ", "モチベーション", "続かない", "続けられ", "辛い", "つらい", "辞めたい", "やめたい", "不安", "自信", "心が折れ"],
+  time:       ["時間", "忙しい", "育児", "子ども", "子供", "仕事", "両立", "スキマ", "平日", "休日", "睡眠"],
+  career:     ["転職", "就職", "キャリア", "将来", "タイミング", "いつ", "辞める", "方向性", "年収"],
+  learning:   ["難しい", "わからない", "ついていけない", "挫折", "向いてない", "苦手", "理解できない", "進まない"],
+  lonely:     ["孤独", "一人", "ひとり", "仲間", "誰とも", "寂しい", "相談できない"],
+  service:    ["サービス", "どれ", "何を", "使い方", "活用", "多すぎ", "わからない", "選べない"],
+};
+
+function detectCategory(text) {
+  for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    if (keywords.some(k => text.includes(k))) return cat;
+  }
+  return null;
+}
+
+function detectMentor(text) {
+  let best = null;
+  let bestScore = 0;
+  for (const mentor of MENTORS) {
+    const score = mentor.tags.filter(t => text.includes(t)).length;
+    if (score > bestScore) { bestScore = score; best = mentor; }
+  }
+  return best;
+}
+
+const CATEGORY_QUESTIONS = {
+  motivation: "そうなんですね、気持ちが落ちてきているんですね😔\nもう少し聞かせてください。\nやる気が下がってきたのは、最近のことですか？それとも、もともとそういう波があるタイプですか？",
+  time:       "忙しい中で学習を続けているんですね、それだけでもすごいことです！\n差し支えなければ、もう少し教えてください。\n学習の時間が取りにくい一番の理由は何ですか？（お仕事・育児・その他）",
+  career:     "転職やキャリアについての不安があるんですね。\n今どの段階にいるか教えてもらえますか？\n「まだ学習中で転職は先の話」「もうすぐ転職活動を始めたい」どちらに近いですか？",
+  learning:   "学習自体に難しさを感じているんですね。\nもう少し詳しく教えてください。\n「内容が難しくてついていけない」「自分には向いていないと思う」どちらに近い感じがしますか？",
+  lonely:     "一人で抱えてきたんですね、それは大変でしたね😊\n少し聞かせてください。\n「同じ境遇の仲間と話したい」「誰かに話を聞いてもらいたい」どちらが強いですか？",
+  service:    "サービスがたくさんあって迷ってしまっているんですね。\nもう少し教えてください。\n今一番困っていることは「学習の進め方」「気持ちの面」「転職・キャリア」のどれに近いですか？",
+};
+
+function buildResult(category, detail) {
+  const fullText = state.userInput1 + " " + detail;
+
+  if (category === "service") {
+    const sub = detectCategory(detail) || "motivation";
+    return buildResult(sub, detail);
+  }
+
+  if (category === "career") {
+    const s = SERVICES.career;
+    return `📌 おすすめのサポート：${s.name}\n\n転職やキャリアの方向性について、専任のコンサルタントに相談できます。今のあなたの状況にぴったりです。\n\n🕐 頻度：${s.frequency}`;
+  }
+
+  if (category === "lonely") {
+    const wantsMentor = ["話を聞いて", "誰か", "先輩", "経験"].some(k => detail.includes(k));
+    if (wantsMentor) {
+      const mentor = detectMentor(fullText) || MENTORS[0];
+      const s = SERVICES.mentoring;
+      return `📌 おすすめのサポート：${s.name}\n\n同じ道を歩んできた先輩に話を聞いてもらうことが、今のあなたには一番合っていると思います。\n\n🕐 頻度：${s.frequency}\n\n👤 おすすめのメンター：${mentor.name}さん\n前職：${mentor.previousJob}\n得意：${mentor.strengths.join("・")}\n\n💬「${mentor.message}」`;
+    }
+    const s = SERVICES.community;
+    return `📌 おすすめのサポート：${s.name}\n\n同じ時期に学んでいる仲間と繋がることで、一人じゃないと実感できます。まず気軽に参加してみてください。\n\n🕐 ${s.frequency}`;
+  }
+
+  if (category === "time") {
+    const mentor = MENTORS.find(m => m.name === "佐藤 美咲");
+    const s = SERVICES.mentoring;
+    return `📌 おすすめのサポート：${s.name}\n\n時間のやりくりについては、同じ経験をした先輩から具体的な工夫を聞くのが一番です。\n\n🕐 頻度：${s.frequency}\n\n👤 おすすめのメンター：${mentor.name}さん\n前職：${mentor.previousJob}\n得意：${mentor.strengths.join("・")}\n\n💬「${mentor.message}」`;
+  }
+
+  if (category === "learning") {
+    const isStruggle = ["向いてない", "挫折", "自信"].some(k => detail.includes(k));
+    if (isStruggle) {
+      const mentor = MENTORS.find(m => m.name === "山田 健太");
+      const s = SERVICES.mentoring;
+      return `📌 おすすめのサポート：${s.name}\n\n「自分には向いていないかも」という気持ちは、多くの人が経験します。同じ気持ちを乗り越えた先輩の話がきっと力になります。\n\n🕐 頻度：${s.frequency}\n\n👤 おすすめのメンター：${mentor.name}さん\n前職：${mentor.previousJob}\n得意：${mentor.strengths.join("・")}\n\n💬「${mentor.message}」`;
+    }
+    const s = SERVICES.group_lesson;
+    return `📌 おすすめのサポート：${s.name}\n\n内容が難しいと感じているなら、テーマ別に開催されるグループレッスンで理解を補うのがおすすめです。\n\n🕐 ${s.frequency}`;
+  }
+
+  // motivation（デフォルト）
+  const mentor = detectMentor(fullText) || MENTORS[0];
+  const s = SERVICES.mentoring;
+  return `📌 おすすめのサポート：${s.name}\n\nモチベーションの波は誰にでもあります。同じ経験をした先輩と話すことで、気持ちが楽になることが多いです。\n\n🕐 頻度：${s.frequency}\n\n👤 おすすめのメンター：${mentor.name}さん\n前職：${mentor.previousJob}\n得意：${mentor.strengths.join("・")}\n\n💬「${mentor.message}」`;
+}
+
+// ========== UI ==========
+
+const messagesEl = document.getElementById('messages');
+const inputEl    = document.getElementById('input');
+const sendBtn    = document.getElementById('sendBtn');
+
+function now() {
+  const d = new Date();
+  return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+
+function addMessage(role, text) {
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + role;
+
+  const time = document.createElement('div');
+  time.className = 'msg-time';
+  time.textContent = now();
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble ' + role;
+  bubble.textContent = text;
+
+  if (role === 'bot') {
+    const avatar = document.createElement('div');
+    avatar.className = 'bot-avatar';
+    avatar.textContent = '🎓';
+    row.appendChild(avatar);
+    row.appendChild(bubble);
+    row.appendChild(time);
+  } else {
+    row.appendChild(time);
+    row.appendChild(bubble);
+  }
+
+  messagesEl.appendChild(row);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function addQuickReplies(options, onSelect) {
+  const wrap = document.createElement('div');
+  wrap.className = 'quick-replies';
+  wrap.id = 'qr';
+
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'qr-btn';
+    btn.textContent = opt;
+    btn.addEventListener('click', () => {
+      wrap.remove();
+      handleUserInput(opt);
+    });
+    wrap.appendChild(btn);
+  });
+
+  messagesEl.appendChild(wrap);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function showTyping(callback, delay = 1200) {
+  const row = document.createElement('div');
+  row.className = 'msg-row bot typing';
+  row.id = 'typing';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'bot-avatar';
+  avatar.textContent = '🎓';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble bot';
+  bubble.innerHTML = '<div class="dots"><span></span><span></span><span></span></div>';
+
+  row.appendChild(avatar);
+  row.appendChild(bubble);
+  messagesEl.appendChild(row);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  setTimeout(() => {
+    row.remove();
+    callback();
+  }, delay);
+}
+
+function botReply(text, quickReplies = null) {
+  showTyping(() => {
+    addMessage('bot', text);
+    if (quickReplies) addQuickReplies(quickReplies[0], quickReplies[1]);
+  });
+}
+
+function handleUserInput(text) {
+  addMessage('user', text);
+
+  if (state.step === 'greeting') {
+    state.userInput1 = text;
+    const cat = detectCategory(text);
+    state.category = cat;
+    state.step = 'detail';
+
+    if (cat && CATEGORY_QUESTIONS[cat]) {
+      botReply(CATEGORY_QUESTIONS[cat]);
+    } else {
+      botReply("教えてくれてありがとうございます😊\n今の悩みに一番近いのはどれですか？",
+        [["やる気・気持ちの面", "時間管理・両立", "転職・キャリア", "学習の難しさ", "仲間・相談相手がほしい", "サービスの選び方"],
+         null]);
+    }
+    return;
+  }
+
+  if (state.step === 'detail') {
+    state.userInput2 = text;
+
+    // カテゴリが未確定の場合はここで確定
+    if (!state.category) {
+      const map = {
+        "やる気・気持ちの面": "motivation",
+        "時間管理・両立": "time",
+        "転職・キャリア": "career",
+        "学習の難しさ": "learning",
+        "仲間・相談相手がほしい": "lonely",
+        "サービスの選び方": "service",
+      };
+      state.category = map[text] || detectCategory(text) || "motivation";
+      botReply(CATEGORY_QUESTIONS[state.category]);
+      state.step = 'detail2';
+      return;
+    }
+
+    state.step = 'result';
+    showTyping(() => {
+      addMessage('bot', "ありがとうございます。少し整理しますね…🔍");
+      showTyping(() => {
+        const result = buildResult(state.category, text);
+        addMessage('bot', result);
+        showTyping(() => {
+          addMessage('bot', "いかがでしょうか？\n「もう少し他のサポートも知りたい」「別の悩みもある」という場合はまた話しかけてください😊");
+          state.step = 'done';
+        }, 1000);
+      }, 1500);
+    }, 800);
+    return;
+  }
+
+  if (state.step === 'detail2') {
+    state.userInput2 = text;
+    state.step = 'result';
+    showTyping(() => {
+      addMessage('bot', "ありがとうございます。少し整理しますね…🔍");
+      showTyping(() => {
+        const result = buildResult(state.category, text);
+        addMessage('bot', result);
+        showTyping(() => {
+          addMessage('bot', "いかがでしょうか？\n「もう少し他のサポートも知りたい」「別の悩みもある」という場合はまた話しかけてください😊");
+          state.step = 'done';
+        }, 1000);
+      }, 1500);
+    }, 800);
+    return;
+  }
+
+  if (state.step === 'done') {
+    state.step = 'greeting';
+    state.category = null;
+    state.userInput1 = '';
+    state.userInput2 = '';
+    botReply("もちろんです！改めて、今どんなことで悩んでいますか？");
+    return;
+  }
+}
+
+// ========== イベント ==========
+
+sendBtn.addEventListener('click', () => {
+  const text = inputEl.value.trim();
+  if (!text) return;
+  inputEl.value = '';
+  inputEl.style.height = 'auto';
+  handleUserInput(text);
+});
+
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendBtn.click();
+  }
+});
+
+inputEl.addEventListener('input', () => {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px';
+});
+
+// 起動時の挨拶
+showTyping(() => {
+  addMessage('bot', "こんにちは！学習サポートナビです🎓\n学習に関する悩みや不安をお気軽に話してください。\nあなたに合ったサポートを一緒に探しましょう！");
+  showTyping(() => {
+    addMessage('bot', "今、どんなことで困っていますか？\n自由に話してもらってもOKですし、下のボタンから選んでもらっても大丈夫です😊");
+    addQuickReplies(
+      ["やる気・気持ちの面", "時間管理・両立", "転職・キャリア", "学習の難しさ", "仲間・相談相手がほしい", "サービスの選び方"],
+      null
+    );
+  }, 1000);
+}, 800);
+</script>
+</body>
+</html>
